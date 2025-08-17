@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>בדיקת Voicebot Vapi</title>
+
+  <!-- CSP בסיסי: מאפשר טעינת הסקריפט מ-unpkg וחיבורים ל-api.vapi.ai -->
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self';
+    script-src 'self' 'unsafe-inline' https://unpkg.com;
+    style-src 'self' 'unsafe-inline';
+    img-src 'self' data: https:;
+    connect-src 'self' https://api.vapi.ai wss://api.vapi.ai https:;
+    frame-src https:;
+    media-src 'self' blob: https:;
+  ">
+
+  <style>
+    :root { color-scheme: light dark; }
+    body { font-family: system-ui, Arial, sans-serif; margin: 0; padding: 24px; }
+    .wrap { max-width: 900px; margin: 0 auto; }
+    h1 { margin: 0 0 8px; font-size: 22px; }
+    p { margin: 0 0 16px; opacity: .85; }
+    .note { font-size: 12px; opacity: .7; }
+    vapi-widget {
+      position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+    }
+    /* אם אתה רוצה אינליין במקום בועת צ'אט, הסר את ה-position שלמעלה */
+    .log { font-family: ui-monospace, Menlo, monospace; background:#111; color:#0f0;
+           padding:10px; border-radius:8px; height:140px; overflow:auto; margin-top:16px; }
+    button { padding:8px 12px; margin-right:8px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>🔊 בדיקת Vapi Voicebot</h1>
+    <p>לחצו על הווידג’ט כדי להתחיל שיחה. ייתכן שהדפדפן יבקש הרשאת מיקרופון.</p>
+
+    <!-- הווידג’ט שלך (בדיוק כפי ששלחת) -->
+    <vapi-widget assistant-id="f5d72134-9229-4e1f-97f3-653b1329c170" public-key="be2bf62f-dfd9-4397-9c34-9505da60a4a9"></vapi-widget>
+
+    <!-- סקריפט ההטמעה -->
+    <script
+      src="https://unpkg.com/@vapi-ai/client-sdk-react/dist/embed/widget.umd.js"
+      async
+      type="text/javascript">
+    </script>
+
+    <!-- כלים קטנים לדיבאג (אופציונלי) -->
+    <div class="log" id="log"></div>
+    <p class="note">טיפ: אם לא שומעים אודיו מיד—בצע/י קליק אחד בדף (מדיניות Autoplay).</p>
+  </div>
+
+  <script>
+    // לוג בסיסי לשגיאות טעינה/הרשאות
+    const logEl = document.getElementById('log');
+    function log(msg){ const t = new Date().toLocaleTimeString(); logEl.innerHTML += `[${t}] ${msg}<br>`; logEl.scrollTop = logEl.scrollHeight; }
+
+    window.addEventListener('error', (e) => log('Error: ' + (e.message || e.filename || 'unknown')));
+    window.addEventListener('unhandledrejection', (e) => log('Promise rejection: ' + (e.reason?.message || e.reason || 'unknown')));
+
+    // אם הווידג’ט חושף אירועי חלון, אפשר להאזין כאן (תלוי בגרסה):
+    // window.addEventListener('message', (e) => { log('postMessage: ' + JSON.stringify(e.data)); });
+  </script>
+</body>
+</html>
