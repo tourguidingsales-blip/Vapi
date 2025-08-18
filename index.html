@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>בדיקת Voicebot — Vapi</title>
+    <style>
+      html, body { height: 100%; margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; background:#0f172a; color:#e2e8f0; }
+      .wrap { min-height:100%; display:grid; place-items:center; text-align:center; padding:24px; }
+      .card { max-width:780px; width:100%; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:28px; }
+      h1 { margin: 0 0 8px; font-size: 28px; }
+      p { margin: 8px 0; line-height: 1.6; }
+      .small { opacity:.8; font-size:14px; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="card" role="main">
+        <h1>בדיקת Voicebot</h1>
+        <p>לחץ/י על הבועה הצפה למטה כדי להתחיל שיחה.</p>
+        <p class="small">הדפדפן יבקש הרשאת מיקרופון (HTTPS של Vercel).</p>
+        <p id="status" class="small">טוען וידג'ט…</p>
+      </div>
+    </div>
+
+    <!-- וידג'ט Vapi -->
+    <vapi-widget
+      assistant-id="f5d72134-9229-4e1f-97f3-653b1329c170"
+      public-key="be2bf62f-dfd9-4397-9c34-9505da60a4a9">
+    </vapi-widget>
+
+    <script
+      src="https://unpkg.com/@vapi-ai/client-sdk-react/dist/embed/widget.umd.js"
+      async
+      type="text/javascript"
+      onload="document.getElementById('status').textContent='הווידג׳ט נטען. אם אינך רואה בועה – רענן/י את הדף.'"
+      onerror="document.getElementById('status').textContent='שגיאה בטעינת הסקריפט. בדוק/י חיבור או כתובת URL.'">
+    </script>
+  </body>
+</html>
