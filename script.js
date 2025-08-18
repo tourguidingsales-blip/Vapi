@@ -1,5 +1,5 @@
-// This line imports the Vapi library and ensures it loads first.
-import Vapi from 'https://unpkg.com/@vapi-ai/web/dist/vapi.es.js';
+// Switched to a more reliable CDN (jsdelivr) to avoid CORS/network issues.
+import Vapi from 'https://cdn.jsdelivr.net/npm/@vapi-ai/web/dist/vapi.es.js';
 
 // --------------------------------------------------
 // -- תצורה --
