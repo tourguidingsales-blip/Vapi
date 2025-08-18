@@ -1,69 +1,26 @@
-# 1) צור תיקייה נקייה
-mkdir vapi-test && cd vapi-test
-
-# 2) צור index.html עם הווידג'ט שלך
-cat > index.html << 'EOF'
-<!doctype html>
+<!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>בדיקת Voicebot Vapi</title>
-  <meta http-equiv="Content-Security-Policy" content="
-    default-src 'self';
-    script-src 'self' 'unsafe-inline' https://unpkg.com;
-    style-src 'self' 'unsafe-inline';
-    img-src 'self' data: https:;
-    connect-src 'self' https://api.vapi.ai wss://api.vapi.ai https:;
-    frame-src https:;
-    media-src 'self' blob: https:;
-  ">
-  <style>
-    :root { color-scheme: light dark; }
-    body { font-family: system-ui, Arial, sans-serif; margin: 0; padding: 24px; }
-    .wrap { max-width: 900px; margin: 0 auto; }
-    vapi-widget { position: fixed; bottom: 24px; right: 24px; z-index: 9999; }
-    .log { font-family: ui-monospace, Menlo, monospace; background:#111; color:#0f0;
-           padding:10px; border-radius:8px; height:140px; overflow:auto; margin-top:16px; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>בדיקת Voicebot</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="wrap">
-    <h1>🔊 בדיקת Vapi Voicebot</h1>
-    <p>לחצו על הבועה להתחלת שיחה. ייתכן שתידרש הרשאת מיקרופון.</p>
 
-    <!-- ה־iframe/ווידג'ט שלך בדיוק כפי ששלחת -->
-    <vapi-widget assistant-id="f5d72134-9229-4e1f-97f3-653b1329c170" public-key="be2bf62f-dfd9-4397-9c34-9505da60a4a9"></vapi-widget>
+    <div class="container">
+        <h1>בדיקת ה-Voicebot שלי</h1>
+        <p>לחץ על "התחל שיחה" כדי לדבר עם הבוט.</p>
+        <div class="buttons">
+            <button id="startButton">התחל שיחה 📞</button>
+            <button id="endButton" disabled>סיים שיחה ⏹️</button>
+        </div>
+        <p id="status" class="status">סטטוס: מוכן</p>
+    </div>
 
-    <script src="https://unpkg.com/@vapi-ai/client-sdk-react/dist/embed/widget.umd.js" async type="text/javascript"></script>
+    <script src="https://unpkg.com/@vapi-ai/web/dist/vapi.es.js"></script>
+    
+    <script src="script.js"></script>
 
-    <div class="log" id="log"></div>
-  </div>
-  <script>
-    const logEl = document.getElementById('log');
-    const log=(m)=>{const t=new Date().toLocaleTimeString();logEl.innerHTML+=`[${t}] ${m}<br>`;logEl.scrollTop=logEl.scrollHeight;}
-    window.addEventListener('error',e=>log('Error: '+(e.message||e.filename||'unknown')));
-    window.addEventListener('unhandledrejection',e=>log('Promise rejection: '+(e.reason?.message||e.reason||'unknown')));
-  </script>
 </body>
 </html>
-EOF
-
-# 3) vercel.json (לא חובה, אבל נעים)
-cat > vercel.json << 'EOF'
-{
-  "version": 2,
-  "routes": [{ "src": "/(.*)", "dest": "/index.html" }],
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [{ "key": "Cache-Control", "value": "no-store" }]
-    }
-  ]
-}
-EOF
-
-# 4) פריסה
-npm i -g vercel
-vercel --prod
-
