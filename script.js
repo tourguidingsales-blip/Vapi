@@ -1,4 +1,4 @@
-// Switched to a more reliable CDN (jsdelivr) to avoid CORS/network issues.
+// Ensure this URL is copied exactly to load the Vapi library.
 import Vapi from 'https://cdn.jsdelivr.net/npm/@vapi-ai/web/dist/vapi.es.js';
 
 // --------------------------------------------------
