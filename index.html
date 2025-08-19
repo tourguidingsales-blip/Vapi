@@ -3,23 +3,23 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>בדיקת Voicebot — מצב קול־לקול בעברית</title>
+    <title>בדיקת Voicebot — מצב קול-קול באנגלית</title>
     <style>
       html, body { height:100%; margin:0; background:#0f172a; color:#e2e8f0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial; }
       .wrap { min-height:100%; display:grid; place-items:center; text-align:center; padding:24px; }
-      .card { max-width:820px; width:100%; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:28px; }
+      .card { max-width:860px; width:100%; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:28px; }
       h1 { margin:0 0 12px; font-size:26px; }
       p { margin:6px 0; font-size:18px; }
       .row { margin-top:14px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
       button { cursor:pointer; border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.08); color:#e2e8f0; font-size:16px; padding:10px 16px; border-radius:10px; }
       button:disabled { opacity:.6; cursor:default; }
-      #status { font-size:14px; opacity:.85; margin-top:6px; }
+      #status { font-size:14px; opacity:.9; margin-top:10px; min-height:1.4em; }
     </style>
   </head>
   <body>
     <div class="wrap">
       <div class="card" role="main" aria-label="דף בדיקה">
-        <h1>בדיקת Voicebot — מצב קול־לקול בעברית</h1>
+        <h1>בדיקת Voicebot — מצב קול-קול באנגלית</h1>
         <p>לחץ/י על הבועה ואז על <b>„התחל”</b> כדי להתחיל שיחה קולית.</p>
         <div class="row">
           <button id="grant-mic">אפשר מיקרופון</button>
@@ -29,7 +29,7 @@
       </div>
     </div>
 
-    <!-- שים לב: key ולא public-key -->
+    <!-- וידג'ט Vapi במצב VOICE -->
     <vapi-widget
       assistant-id="f5d72134-9229-4e1f-97f3-653b1329c170"
       key="be2bf62f-dfd9-4397-9c34-9505da60a4a9"
@@ -49,7 +49,9 @@
       const btnOpen  = document.getElementById('open-widget');
       const widget   = document.querySelector('vapi-widget');
 
-      // מחממים AudioContext בלחיצה הראשונה (פותח את ה-TTS ברוב הדפדפנים)
+      function setStatus(msg){ statusEl.textContent = msg; }
+
+      // "חימום" אודיו (נדרש בחלק מהדפדפנים כדי לאפשר השמעה לאחר מחסומי אוטופליי)
       function warmupAudio() {
         try {
           const AC = window.AudioContext || window.webkitAudioContext;
@@ -60,39 +62,59 @@
         } catch (_) {}
       }
 
-      // פותח את הבועה (אם קיימת מתודה open)
+      // פתח את הבועה (אם קיימת מתודה open)
       btnOpen.addEventListener('click', () => {
         warmupAudio();
         try { (widget && widget.open) ? widget.open() : null; } catch(_) {}
-        statusEl.textContent = 'הבועה נפתחה. אם לא – לחץ/י ידנית בפינה התחתונה.';
+        setStatus('אם הבועה לא נפתחה אוטומטית — לחץ/י עליה ידנית בפינה התחתונה.');
       });
 
-      // בקשת הרשאת מיקרופון בלחיצה יזומה
+      // בקשת הרשאת מיקרופון בלחיצה יזומה + פידבק ברור למסך
       btnMic.addEventListener('click', async () => {
         warmupAudio();
-        statusEl.textContent = 'מבקש הרשאת מיקרופון…';
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          setStatus('הדפדפן לא תומך ב-getUserMedia. נסה/י Chrome/Edge ב-HTTPS.');
+          return;
+        }
+        setStatus('מבקש הרשאת מיקרופון…');
         try {
-          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          stream.getTracks().forEach(t => t.stop());
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
+          stream.getTracks().forEach(t => t.stop()); // מיד סוגרים – רק כדי לקבל הרשאה
           btnMic.disabled = true;
           btnMic.textContent = 'הרשאה הופעלה ✔';
-          statusEl.textContent = 'מצוין! לחץ/י „התחל” בתוך הווידג׳ט.';
+          setStatus('מצוין! עכשיו לחצו „התחל” בתוך הווידג׳ט.');
           try { (widget && widget.open) ? widget.open() : null; } catch(_) {}
         } catch (err) {
-          statusEl.textContent = 'לא ניתן לקבל הרשאת מיקרופון. בדוק/י הרשאות בלוק ליד ה-URL → מיקרופון → אפשר.';
+          console.error('Mic error:', err);
+          if (err && (err.name === 'NotAllowedError' || err.name === 'SecurityError')) {
+            setStatus('הגישה למיקרופון חסומה. ליד ה-URL → אייקון מנעול → הרשאות אתר → מיקרופון → „אפשר”, ואז רענון.');
+          } else if (err && err.name === 'NotFoundError') {
+            setStatus('לא נמצא מיקרופון במכשיר. חבר/י מיקרופון ובדוק/י שוב.');
+          } else {
+            setStatus('אירעה שגיאה בקבלת מיקרופון. פרטים בקונסול.');
+          }
         }
       });
 
-      // אם כבר יש הרשאה, עדכן כפתור
+      // אם כבר יש הרשאה, נעדכן UI מראש
       if (navigator.permissions?.query) {
         navigator.permissions.query({ name: 'microphone' }).then(p => {
           if (p.state === 'granted') {
             btnMic.disabled = true;
             btnMic.textContent = 'הרשאה קיימת ✔';
+            setStatus('יש כבר הרשאת מיקרופון. ניתן ללחוץ „התחל” בווידג׳ט.');
           }
         }).catch(() => {});
       }
 
-      // מחמם אודיו גם על כל קליק ראשון בדף
+      // מחמם אודיו גם על הקלקה ראשונה בדף
       document.addEventListener('click', warmupAudio, { once: true });
-      // לוג שג
+
+      // לוכד אירועי שגיאה מהווידג׳ט (אם נשלחים) כדי להציג במסך
+      window.addEventListener('vapi-error', e => {
+        console.log('Vapi error:', e.detail || e);
+        setStatus('שגיאת ווידג׳ט — ראה/י פרטים בקונסול הדפדפן.');
+      });
+    </script>
+  </body>
+</html>
