@@ -3,33 +3,43 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>בדיקת Voicebot — Vapi</title>
+    <title>בדיקת Voicebot — מצב קול־לקול בעברית</title>
     <style>
-      html, body { height: 100%; margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; background:#0f172a; color:#e2e8f0; }
+      html, body { height:100%; margin:0; background:#0f172a; color:#e2e8f0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial; }
       .wrap { min-height:100%; display:grid; place-items:center; text-align:center; padding:24px; }
-      .card { max-width:780px; width:100%; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:28px; }
-      h1 { margin: 0 0 8px; font-size: 28px; }
-      p { margin: 8px 0; line-height: 1.6; }
-      .small { opacity:.8; font-size:14px; }
+      .card { max-width:820px; width:100%; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:28px; }
+      h1 { margin:0 0 12px; font-size:26px; }
+      p { margin:6px 0; font-size:18px; }
+      .row { margin-top:14px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+      button {
+        cursor:pointer; border:1px solid rgba(255,255,255,.18);
+        background:rgba(255,255,255,.08); color:#e2e8f0; font-size:16px;
+        padding:10px 16px; border-radius:10px;
+      }
+      button:disabled { opacity:.6; cursor:default; }
+      #status { font-size:14px; opacity:.85; margin-top:6px; }
     </style>
   </head>
   <body>
     <div class="wrap">
-      <div class="card" role="main">
-        <h1>בדיקת Voicebot</h1>
-        <p>לחץ/י על הבועה למטה ואז על “התחל” כדי להתחיל שיחה קולית.</p>
-        <p class="small">ייתכן שהדפדפן יבקש הרשאת מיקרופון (HTTPS של Vercel).</p>
-        <p id="status" class="small">טוען וידג'ט…</p>
+      <div class="card" role="main" aria-label="דף בדיקה">
+        <h1>בדיקת Voicebot — מצב קול־לקול בעברית</h1>
+        <p>לחץ/י על הבועה ואז על <b>„התחל”</b> כדי להתחיל שיחה קולית.</p>
+        <div class="row">
+          <button id="grant-mic">אפשר מיקרופון</button>
+          <button id="open-widget">פתח את הבועה</button>
+        </div>
+        <div id="status"></div>
       </div>
     </div>
 
-    <!-- וידג'ט Vapi במצב VOICE -->
+    <!-- וידג'ט Vapi במצב VOICE + תוויות בעברית -->
     <vapi-widget
-      public-key="be2bf62f-dfd9-4397-9c34-9505da60a4a9"
       assistant-id="f5d72134-9229-4e1f-97f3-653b1329c170"
+      public-key="be2bf62f-dfd9-4397-9c34-9505da60a4a9"
       mode="voice"
-      size="compact"
       theme="dark"
+      size="compact"
       main-label="שיחה קולית עם AI"
       start-button-text="התחל"
       end-button-text="סיום">
@@ -38,9 +48,47 @@
     <script
       src="https://unpkg.com/@vapi-ai/client-sdk-react/dist/embed/widget.umd.js"
       async
-      type="text/javascript"
-      onload="document.getElementById('status').textContent='הווידג׳ט נטען. לחץ/י על הבועה להתחיל.'"
-      onerror="document.getElementById('status').textContent='שגיאה בטעינת הסקריפט.'">
+      type="text/javascript">
+    </script>
+
+    <script>
+      const statusEl = document.getElementById('status');
+      const btnMic   = document.getElementById('grant-mic');
+      const btnOpen  = document.getElementById('open-widget');
+      const widget   = document.querySelector('vapi-widget');
+
+      // פותח את הבועה (אם הספרייה חושפת מתודה open, ננסה להשתמש בה)
+      btnOpen.addEventListener('click', () => {
+        try { (widget && widget.open) ? widget.open() : null; } catch(_) {}
+        statusEl.textContent = 'הבועה נפתחה. אם לא – לחץ/י ידנית בפינה התחתונה.';
+      });
+
+      // בקשת הרשאת מיקרופון בלחיצה (דרישת הדפדפן: פעולה יזומה)
+      btnMic.addEventListener('click', async () => {
+        statusEl.textContent = 'מבקש הרשאת מיקרופון…';
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          // סיימנו רק לקבל הרשאה – נסגור את הזרם
+          stream.getTracks().forEach(t => t.stop());
+          btnMic.disabled = true;
+          btnMic.textContent = 'הרשאה הופעלה ✔';
+          statusEl.textContent = 'מעולה! כעת לחץ/י „התחל” בתוך הווידג׳ט.';
+          // פתח את הבועה לנוחות
+          try { (widget && widget.open) ? widget.open() : null; } catch(_) {}
+        } catch (err) {
+          statusEl.textContent = 'לא ניתן לקבל הרשאת מיקרופון. בדוק/י שההרשאה לא חסומה (אייקון המנעול ליד ה־URL → מיקרופון → אפשר).';
+        }
+      });
+
+      // אם כבר מאושרת הרשאה, עדכן כפתור
+      if (navigator.permissions && navigator.permissions.query) {
+        navigator.permissions.query({ name: 'microphone' }).then(p => {
+          if (p.state === 'granted') {
+            btnMic.disabled = true;
+            btnMic.textContent = 'הרשאה קיימת ✔';
+          }
+        }).catch(() => {});
+      }
     </script>
   </body>
 </html>
