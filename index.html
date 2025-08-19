@@ -10,29 +10,24 @@
       .card { max-width:860px; width:100%; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:28px; }
       h1 { margin:0 0 12px; font-size:26px; }
       p { margin:6px 0; font-size:18px; }
-      .row { margin-top:14px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
-      button { cursor:pointer; border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.08); color:#e2e8f0; font-size:16px; padding:10px 16px; border-radius:10px; }
-      button:disabled { opacity:.6; cursor:default; }
       #status { font-size:14px; opacity:.9; margin-top:10px; min-height:1.4em; }
+      button { cursor:pointer; border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.08); color:#e2e8f0; font-size:16px; padding:10px 16px; border-radius:10px; }
     </style>
   </head>
   <body>
     <div class="wrap">
-      <div class="card" role="main" aria-label="דף בדיקה">
+      <div class="card" role="main">
         <h1>בדיקת Voicebot — מצב קול-קול באנגלית</h1>
         <p>לחץ/י על הבועה ואז על <b>„התחל”</b> כדי להתחיל שיחה קולית.</p>
-        <div class="row">
-          <button id="grant-mic">אפשר מיקרופון</button>
-          <button id="open-widget">פתח את הבועה</button>
-        </div>
-        <div id="status"></div>
+        <p id="status"></p>
+        <button id="open">פתח את הבועה</button>
       </div>
     </div>
 
-    <!-- וידג'ט Vapi במצב VOICE -->
+    <!-- משתמשים ב-public-key בדיוק כמו ב-Embed מהדשבורד -->
     <vapi-widget
       assistant-id="f5d72134-9229-4e1f-97f3-653b1329c170"
-      key="be2bf62f-dfd9-4397-9c34-9505da60a4a9"
+      public-key="be2bf62f-dfd9-4397-9c34-9505da60a4a9"
       mode="voice"
       theme="dark"
       size="compact"
@@ -42,79 +37,11 @@
     </vapi-widget>
 
     <script src="https://unpkg.com/@vapi-ai/client-sdk-react/dist/embed/widget.umd.js" async type="text/javascript"></script>
-
     <script>
       const statusEl = document.getElementById('status');
-      const btnMic   = document.getElementById('grant-mic');
-      const btnOpen  = document.getElementById('open-widget');
-      const widget   = document.querySelector('vapi-widget');
-
-      function setStatus(msg){ statusEl.textContent = msg; }
-
-      // "חימום" אודיו (נדרש בחלק מהדפדפנים כדי לאפשר השמעה לאחר מחסומי אוטופליי)
-      function warmupAudio() {
-        try {
-          const AC = window.AudioContext || window.webkitAudioContext;
-          if (AC) {
-            if (!window.__ac) window.__ac = new AC();
-            window.__ac.resume();
-          }
-        } catch (_) {}
-      }
-
-      // פתח את הבועה (אם קיימת מתודה open)
-      btnOpen.addEventListener('click', () => {
-        warmupAudio();
-        try { (widget && widget.open) ? widget.open() : null; } catch(_) {}
-        setStatus('אם הבועה לא נפתחה אוטומטית — לחץ/י עליה ידנית בפינה התחתונה.');
-      });
-
-      // בקשת הרשאת מיקרופון בלחיצה יזומה + פידבק ברור למסך
-      btnMic.addEventListener('click', async () => {
-        warmupAudio();
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-          setStatus('הדפדפן לא תומך ב-getUserMedia. נסה/י Chrome/Edge ב-HTTPS.');
-          return;
-        }
-        setStatus('מבקש הרשאת מיקרופון…');
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
-          stream.getTracks().forEach(t => t.stop()); // מיד סוגרים – רק כדי לקבל הרשאה
-          btnMic.disabled = true;
-          btnMic.textContent = 'הרשאה הופעלה ✔';
-          setStatus('מצוין! עכשיו לחצו „התחל” בתוך הווידג׳ט.');
-          try { (widget && widget.open) ? widget.open() : null; } catch(_) {}
-        } catch (err) {
-          console.error('Mic error:', err);
-          if (err && (err.name === 'NotAllowedError' || err.name === 'SecurityError')) {
-            setStatus('הגישה למיקרופון חסומה. ליד ה-URL → אייקון מנעול → הרשאות אתר → מיקרופון → „אפשר”, ואז רענון.');
-          } else if (err && err.name === 'NotFoundError') {
-            setStatus('לא נמצא מיקרופון במכשיר. חבר/י מיקרופון ובדוק/י שוב.');
-          } else {
-            setStatus('אירעה שגיאה בקבלת מיקרופון. פרטים בקונסול.');
-          }
-        }
-      });
-
-      // אם כבר יש הרשאה, נעדכן UI מראש
-      if (navigator.permissions?.query) {
-        navigator.permissions.query({ name: 'microphone' }).then(p => {
-          if (p.state === 'granted') {
-            btnMic.disabled = true;
-            btnMic.textContent = 'הרשאה קיימת ✔';
-            setStatus('יש כבר הרשאת מיקרופון. ניתן ללחוץ „התחל” בווידג׳ט.');
-          }
-        }).catch(() => {});
-      }
-
-      // מחמם אודיו גם על הקלקה ראשונה בדף
-      document.addEventListener('click', warmupAudio, { once: true });
-
-      // לוכד אירועי שגיאה מהווידג׳ט (אם נשלחים) כדי להציג במסך
-      window.addEventListener('vapi-error', e => {
-        console.log('Vapi error:', e.detail || e);
-        setStatus('שגיאת ווידג׳ט — ראה/י פרטים בקונסול הדפדפן.');
-      });
+      const widget = document.querySelector('vapi-widget');
+      document.getElementById('open').onclick = () => { try { widget.open?.(); } catch(_) {} };
+      window.addEventListener('vapi-error', e => { console.log('Vapi error:', e.detail||e); statusEl.textContent = 'שגיאת הרשאה מהשרת (401). בדוק/י public-key ודומיין מותר.'; });
     </script>
   </body>
 </html>
