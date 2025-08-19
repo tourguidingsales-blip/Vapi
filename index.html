@@ -3,52 +3,40 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>בדיקת Voicebot — מצב קול-קול באנגלית</title>
+    <title>בדיקת Voicebot — Vapi</title>
     <style>
-      html, body { height:100%; margin:0; background:#0f172a; color:#e2e8f0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial; }
+      html, body { height: 100%; margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; background:#0f172a; color:#e2e8f0; }
       .wrap { min-height:100%; display:grid; place-items:center; text-align:center; padding:24px; }
-      .card { max-width:860px; width:100%; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:28px; }
-      h1 { margin:0 0 12px; font-size:26px; }
-      p { margin:6px 0; font-size:18px; }
-      #status { margin-top:10px; font-size:14px; opacity:.95; min-height:1.6em; }
-      button{cursor:pointer;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);color:#e2e8f0;padding:10px 16px;border-radius:10px}
+      .card { max-width:780px; width:100%; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:28px; }
+      h1 { margin: 0 0 8px; font-size: 28px; }
+      p { margin: 8px 0; line-height: 1.6; }
+      .small { opacity:.8; font-size:14px; }
     </style>
   </head>
   <body>
     <div class="wrap">
-      <div class="card">
-        <h1>בדיקת Voicebot — מצב קול-קול באנגלית</h1>
-        <p>לחץ/י על הבועה ואז על <b>Start</b> כדי להתחיל שיחה.</p>
-        <p id="status"></p>
-        <p><button id="open">פתח את הבועה</button></p>
+      <div class="card" role="main">
+        <h1>בדיקת Voicebot</h1>
+        <p>לחץ/י על הבועה הצפה למטה כדי להתחיל שיחה.</p>
+        <p class="small">הדפדפן יבקש הרשאת מיקרופון (HTTPS של Vercel).</p>
+        <p id="status" class="small">טוען וידג'ט…</p>
       </div>
     </div>
 
-    <script src="https://unpkg.com/@vapi-ai/client-sdk-react/dist/embed/widget.umd.js" async type="text/javascript"></script>
-
+    <!-- וידג'ט Vapi -->
     <vapi-widget
       assistant-id="f5d72134-9229-4e1f-97f3-653b1329c170"
-      public-key="be2bf62f-dfd9-4397-9c34-9505da60a4a9"
-      mode="voice"
-      theme="dark"
-      size="compact"
-      main-label="Voice with AI"
-      start-button-text="Start"
-      end-button-text="End Call">
+      public-key="be2bf62f-dfd9-4397-9c34-9505da60a4a9">
     </vapi-widget>
 
-    <script>
-      const statusEl=document.getElementById('status');
-      const widget=document.querySelector('vapi-widget');
-      document.getElementById('open').onclick=()=>{ try{ widget.open?.(); }catch{} };
-
-      // לוג סטטוס/שגיאות מהווידג'ט
-      widget.addEventListener('call-start', ()=> statusEl.textContent='Voice call started.');
-      widget.addEventListener('call-end',   ()=> statusEl.textContent='Call ended.');
-      widget.addEventListener('error', (e)=>{
-        console.error('Vapi widget error:', e.detail||e);
-        statusEl.textContent='שגיאה מהווידג׳ט. אם זה 401 — מפתח/דומיין; אם NotAllowedError — הרשאות.';
-      });
+    <script
+      src="https://unpkg.com/@vapi-ai/client-sdk-react/dist/embed/widget.umd.js"
+      async
+      type="text/javascript"
+      onload="document.getElementById('status').textContent='הווידג׳ט נטען. אם אינך רואה בועה – רענן/י את הדף.'"
+      onerror="document.getElementById('status').textContent='שגיאה בטעינת הסקריפט. בדוק/י חיבור או כתובת URL.'">
     </script>
   </body>
 </html>
+
+
