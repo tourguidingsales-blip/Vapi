@@ -3,48 +3,44 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>בדיקת התנהלות שיחה של voicebot 7 באוקטובר / מצב צ'ט בעברית</title>
+    <title>בדיקת Voicebot — Vapi</title>
     <style>
-      html, body { height:100%; margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial; background:#0f172a; color:#e2e8f0; }
+      html, body { height: 100%; margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; background:#0f172a; color:#e2e8f0; }
       .wrap { min-height:100%; display:grid; place-items:center; text-align:center; padding:24px; }
       .card { max-width:780px; width:100%; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:28px; }
-      h1 { margin:0 0 12px; font-size:26px; }
-      p { margin:0; line-height:1.6; font-size:18px; }
+      h1 { margin: 0 0 8px; font-size: 28px; }
+      p { margin: 8px 0; line-height: 1.6; }
+      .small { opacity:.8; font-size:14px; }
     </style>
   </head>
   <body>
     <div class="wrap">
-      <div class="card" role="main" aria-label="דף בדיקה">
-        <h1>בדיקת התנהלות שיחה של voicebot 7 באוקטובר / מצב צ'ט בעברית</h1>
-        <p>לחץ על הבועה למטה כדי להתחיל בצ'ט.</p>
+      <div class="card" role="main">
+        <h1>בדיקת Voicebot</h1>
+        <p>לחץ/י על הבועה למטה ואז על “התחל” כדי להתחיל שיחה קולית.</p>
+        <p class="small">ייתכן שהדפדפן יבקש הרשאת מיקרופון (HTTPS של Vercel).</p>
+        <p id="status" class="small">טוען וידג'ט…</p>
       </div>
     </div>
 
-    <!-- וידג'ט Vapi במצב צ'ט + תווית עברית לבועה -->
+    <!-- וידג'ט Vapi במצב VOICE -->
     <vapi-widget
-      assistant-id="f5d72134-9229-4e1f-97f3-653b1329c170"
       public-key="be2bf62f-dfd9-4397-9c34-9505da60a4a9"
-      mode="chat"
-      main-label="צ'ט עם AI">
+      assistant-id="f5d72134-9229-4e1f-97f3-653b1329c170"
+      mode="voice"
+      size="compact"
+      theme="dark"
+      main-label="שיחה קולית עם AI"
+      start-button-text="התחל"
+      end-button-text="סיום">
     </vapi-widget>
 
     <script
       src="https://unpkg.com/@vapi-ai/client-sdk-react/dist/embed/widget.umd.js"
       async
-      type="text/javascript">
-    </script>
-
-    <!-- גיבוי: אם הספריה מתעלמת מה-attribute, ננסה להגדיר גם כ-property/שם חלופי -->
-    <script>
-      window.addEventListener('load', () => {
-        const w = document.querySelector('vapi-widget');
-        if (!w) return;
-        try {
-          w.setAttribute('main-label', "צ'ט עם AI");
-          w.setAttribute('label', "צ'ט עם AI");
-          w.mainLabel = "צ'ט עם AI";
-        } catch (_) {}
-      });
+      type="text/javascript"
+      onload="document.getElementById('status').textContent='הווידג׳ט נטען. לחץ/י על הבועה להתחיל.'"
+      onerror="document.getElementById('status').textContent='שגיאה בטעינת הסקריפט.'">
     </script>
   </body>
 </html>
