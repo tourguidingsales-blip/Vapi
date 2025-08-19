@@ -11,11 +11,7 @@
       h1 { margin:0 0 12px; font-size:26px; }
       p { margin:6px 0; font-size:18px; }
       .row { margin-top:14px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
-      button {
-        cursor:pointer; border:1px solid rgba(255,255,255,.18);
-        background:rgba(255,255,255,.08); color:#e2e8f0; font-size:16px;
-        padding:10px 16px; border-radius:10px;
-      }
+      button { cursor:pointer; border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.08); color:#e2e8f0; font-size:16px; padding:10px 16px; border-radius:10px; }
       button:disabled { opacity:.6; cursor:default; }
       #status { font-size:14px; opacity:.85; margin-top:6px; }
     </style>
@@ -33,10 +29,10 @@
       </div>
     </div>
 
-    <!-- וידג'ט Vapi במצב VOICE + תוויות בעברית -->
+    <!-- שים לב: key ולא public-key -->
     <vapi-widget
       assistant-id="f5d72134-9229-4e1f-97f3-653b1329c170"
-      public-key="be2bf62f-dfd9-4397-9c34-9505da60a4a9"
+      key="be2bf62f-dfd9-4397-9c34-9505da60a4a9"
       mode="voice"
       theme="dark"
       size="compact"
@@ -45,11 +41,7 @@
       end-button-text="סיום">
     </vapi-widget>
 
-    <script
-      src="https://unpkg.com/@vapi-ai/client-sdk-react/dist/embed/widget.umd.js"
-      async
-      type="text/javascript">
-    </script>
+    <script src="https://unpkg.com/@vapi-ai/client-sdk-react/dist/embed/widget.umd.js" async type="text/javascript"></script>
 
     <script>
       const statusEl = document.getElementById('status');
@@ -57,31 +49,42 @@
       const btnOpen  = document.getElementById('open-widget');
       const widget   = document.querySelector('vapi-widget');
 
-      // פותח את הבועה (אם הספרייה חושפת מתודה open, ננסה להשתמש בה)
+      // מחממים AudioContext בלחיצה הראשונה (פותח את ה-TTS ברוב הדפדפנים)
+      function warmupAudio() {
+        try {
+          const AC = window.AudioContext || window.webkitAudioContext;
+          if (AC) {
+            if (!window.__ac) window.__ac = new AC();
+            window.__ac.resume();
+          }
+        } catch (_) {}
+      }
+
+      // פותח את הבועה (אם קיימת מתודה open)
       btnOpen.addEventListener('click', () => {
+        warmupAudio();
         try { (widget && widget.open) ? widget.open() : null; } catch(_) {}
         statusEl.textContent = 'הבועה נפתחה. אם לא – לחץ/י ידנית בפינה התחתונה.';
       });
 
-      // בקשת הרשאת מיקרופון בלחיצה (דרישת הדפדפן: פעולה יזומה)
+      // בקשת הרשאת מיקרופון בלחיצה יזומה
       btnMic.addEventListener('click', async () => {
+        warmupAudio();
         statusEl.textContent = 'מבקש הרשאת מיקרופון…';
         try {
           const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          // סיימנו רק לקבל הרשאה – נסגור את הזרם
           stream.getTracks().forEach(t => t.stop());
           btnMic.disabled = true;
           btnMic.textContent = 'הרשאה הופעלה ✔';
-          statusEl.textContent = 'מעולה! כעת לחץ/י „התחל” בתוך הווידג׳ט.';
-          // פתח את הבועה לנוחות
+          statusEl.textContent = 'מצוין! לחץ/י „התחל” בתוך הווידג׳ט.';
           try { (widget && widget.open) ? widget.open() : null; } catch(_) {}
         } catch (err) {
-          statusEl.textContent = 'לא ניתן לקבל הרשאת מיקרופון. בדוק/י שההרשאה לא חסומה (אייקון המנעול ליד ה־URL → מיקרופון → אפשר).';
+          statusEl.textContent = 'לא ניתן לקבל הרשאת מיקרופון. בדוק/י הרשאות בלוק ליד ה-URL → מיקרופון → אפשר.';
         }
       });
 
-      // אם כבר מאושרת הרשאה, עדכן כפתור
-      if (navigator.permissions && navigator.permissions.query) {
+      // אם כבר יש הרשאה, עדכן כפתור
+      if (navigator.permissions?.query) {
         navigator.permissions.query({ name: 'microphone' }).then(p => {
           if (p.state === 'granted') {
             btnMic.disabled = true;
@@ -89,6 +92,7 @@
           }
         }).catch(() => {});
       }
-    </script>
-  </body>
-</html>
+
+      // מחמם אודיו גם על כל קליק ראשון בדף
+      document.addEventListener('click', warmupAudio, { once: true });
+      // לוג שג
